@@ -1,0 +1,7 @@
+[
+    { "id": 1, "name": "caoutchouc", "name_sc": "ficus elastica", "spring_wt": 7, "summer_wt": 7, "autumn_wt": 12, "winter_wt": 12 },
+    { "id": 2, "name": "pilea", "name_sc": "pilea peperomioides", "spring_wt": 7, "summer_wt": 7, "autumn_wt": 9, "winter_wt": 12 },
+    { "id": 3, "name": "fougere", "name_sc": "nephrolepis exalta blue bell", "spring_wt": 7, "summer_wt": 3, "autumn_wt": 7, "winter_wt": 9 },
+    { "id": 4, "name": "faux philodendron", "name_sc": "monstera deliciosa", "spring_wt": 4, "summer_wt": 4, "autumn_wt": 7, "winter_wt": 10 },
+    { "id": 5, "name": "test", "name_sc": "test_sc", "spring_wt": 4, "summer_wt": 4, "autumn_wt": 7, "winter_wt": 10 }
+]
