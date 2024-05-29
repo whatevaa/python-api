@@ -20,7 +20,9 @@ class Plant(Resource):
 
 
     # 1 - Function to get plant
-    def get(self, id):
+    def get(self, id=None):
+        if not id:
+            return self.plants, 200 # return all plants
         for plant in self.plants:
             if(id == plant["id"]):
                 return plant, 200

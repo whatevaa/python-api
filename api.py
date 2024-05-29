@@ -27,6 +27,6 @@ plant_object = plant.Plant # from class Plant() in python-api/classes/plant.py
 # URI format definition
 # "resource_class_kwargs" to pass data as parameter into a Flask-RESTfull Resource.
 # Because we want to pass plants_data to the class Plant(), to use functions 
-api.add_resource(plant_object, "/plant/<int:id>", resource_class_kwargs={'plants': plants_data}) 
+api.add_resource(plant_object, "/plant", "/plant/<int:id>", resource_class_kwargs={'plants': plants_data})  
 # "app.config["DEBUG"] = True" +  "app.run()"
 app.run(debug=True, port = 5001) # default port 5000 not working
