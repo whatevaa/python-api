@@ -1,105 +1,53 @@
 #!/usr/bin/env python
 
 # Import package
-from flask_restful import Resource, Api, reqparse
-import logging as lg
-import json
+from flask_restful import Resource
+from flask import request, current_app
+from models import Plant, User, UserPlantEvent
+from schemas import plant_schema, plants_schema
 
 
 # Api endpoint
-class Plant(Resource):
-
-    def __init__(self, plants) -> None:
-        """self.name = "plant_name" # Name
-        self.name_sc = "nom_scientifique" # Scientific name
-        self.spring_wt = "spring_watering" # Spring number days watering (in days)
-        self.summer_wt = "summer_watering" # Summer number days watering (in days)
-        self.autumn_wt = "autumn_watering" # Autumn number days watering (in days)
-        self.winter_wt = "winter_watering" # Winter number days watering (in days)"""
-        self.plants = plants
-
+class PlantApi(Resource):
 
     # 1 - Function to get plant
     def get(self, id=None):
         if not id:
-            return self.plants, 200 # return all plants
-        for plant in self.plants:
-            if(id == plant["id"]):
-                return plant, 200
-        return "Plant not in database", 404
+            plants = Plant.query.all()
+            return plants_schema.dump(plants), 200
+        else:
+            plant = Plant.query.get(id)
+            if not plant:
+                return "Plant not in database", 404
+            return plant_schema.dump(plant), 200
 
     # 2 - Function to create new plant
-    def post(self, id):
-        parser = reqparse.RequestParser() # Flask parser to extract JSON data
-        parser.add_argument("name")
-        parser.add_argument("name_sc")
-        parser.add_argument("spring_wt")
-        parser.add_argument("summer_wt")
-        parser.add_argument("autumn_wt")
-        parser.add_argument("winter_wt")
-        args = parser.parse_args() # extract
-
-        # If plant already in db
-        for plant in self.plants:
-            if(id == plant["id"]): 
-                return "The plant {} exist already in db".format(id), 400
-        
-        # If not in db create plant
-        plant = {
-            "id": id, 
-            "name": args["name"], 
-            "name_sc": args["name_sc"], 
-            "spring_wt": args["spring_wt"], 
-            "summer_wt": args["summer_wt"], 
-            "autumn_wt": args["autumn_wt"], 
-            "winter_wt": args["winter_wt"]
-        }
-        # Add the new plant to plants dictionary
-        self.plants.append(plant)
-        return plant, 201
-
+    def post(self):
+            sname = request.json['scientific_name']
+            existing_plant = Plant.query.filter(Plant.scientific_name == sname).one_or_none()
+            if existing_plant is None:
+                new_plant = plant_schema.load(request.json, session=current_app.config['db'].session)
+                current_app.config['db'].session.add(new_plant)
+                current_app.config['db'].session.commit()
+                return plant_schema.dump(new_plant), 201
+            else:
+                return "The plant {} exist already in db with id {}".format(sname,existing_plant.id), 400
 
     # 3 - Function to create or update plant
     def put(self, id):
-        parser = reqparse.RequestParser() # Flask parser to extract JSON data
-        parser.add_argument("name")
-        parser.add_argument("name_sc")
-        parser.add_argument("spring_wt")
-        parser.add_argument("summer_wt")
-        parser.add_argument("autumn_wt")
-        parser.add_argument("winter_wt")
-        args = parser.parse_args() # extract
+        existing_plant = Plant.query.get(id)
+        if existing_plant is None:
+            return {"message": "Plant not found"}, 404
+        updated_plant = plant_schema.load(request.json, instance=existing_plant, session=current_app.config['db'].session) # to update the plant use instance=existing_plant, if not a new plant is created
+        current_app.config['db'].session.add(updated_plant)
+        current_app.config['db'].session.commit()
+        return plant_schema.dump(updated_plant), 201
 
-        # If plant already in db, update existing plant
-        for plant in self.plants:
-            if(id == plant["id"]): 
-                plant["name"] = args["name"],
-                plant["name_sc"] = args["name_sc"],
-                plant["spring_wt"] = args["spring_wt"],
-                plant["summer_wt"] = args["summer_wt"],
-                plant["autumn_wt"] = args["autumn_wt"],
-                plant["winter_wt"] = args["winter_wt"]
-                lg.info("The plant {} has been updated".format(id))
-                return plant, 200
-        
-        # Else create plant
-        plant = {
-            "id": id, 
-            "name": args["name"], 
-            "name_sc": args["name_sc"], 
-            "spring_wt": args["spring_wt"], 
-            "summer_wt": args["summer_wt"], 
-            "autumn_wt": args["autumn_wt"], 
-            "winter_wt": args["winter_wt"]
-        }
-        # Add the new plant to plants dictionary
-        self.plants.append(plant)
-        lg.info("The plant {} has been created".format(id))
-        return plant, 201
-    
     # 4 - Function to delete plant
     def delete(self, id):
-        global plants
-        # Return a plant list without the plant with id in argument
-        plants = [plant for plant in self.plants if plant["id"] != id]
-        return "The plant {} has been deleted".format(id)
+        plant_to_delete = Plant.query.get(id)
+        if plant_to_delete is None:
+            return {"message": "Plant not found"}, 404
+        current_app.config['db'].session.delete(plant_to_delete)
+        current_app.config['db'].session.commit()
+        return {"message": "Plant has been deleted"}, 204
