@@ -3,7 +3,7 @@
 # Import package
 from flask_restful import Resource
 from flask import request, current_app
-from models import Plant, User, UserPlantEvent
+from models import Plant
 from schemas import plant_schema, plants_schema
 
 
